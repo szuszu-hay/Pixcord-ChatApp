@@ -1,0 +1,40 @@
+
+# Node.js dependencies
+node_modules/
+**/node_modules/
+
+
+# React / Vite build files
+chat-client/dist/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+chat-client/.env
+chat-client/.env.*
+!chat-client/.env.example
+
+# ASP.NET Core build files
+ChatAPI/bin/
+ChatAPI/obj/
+
+# Local databases
+ChatAPI/*.db
+ChatAPI/*.db-*
+ChatAPI/*.sqbpro
+
+# Local configuration
+ChatAPI/appsettings.Development.json
+
+# User-uploaded files
+ChatAPI/wwwroot/uploads/
+ChatAPI/wwwroot/avatars/
+ChatAPI/wwwroot/group-icons/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.suo
