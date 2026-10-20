@@ -20,8 +20,9 @@ namespace ChatAPI.Helpers
         public static readonly string[] AttachmentTypes =
             { "image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf", "text/plain" };
 
-        public static async Task<string> SaveAsync(
-            IFormFile file, string folderName, string[] allowedContentTypes, IWebHostEnvironment env)
+        public static string GetExtension(string contentType) => ExtensionsByContentType[contentType];
+
+        public static void Validate(IFormFile file, string[] allowedContentTypes)
         {
             if (file.Length == 0)
                 throw new InvalidOperationException("File is empty.");
@@ -31,20 +32,6 @@ namespace ChatAPI.Helpers
 
             if (!allowedContentTypes.Contains(file.ContentType))
                 throw new InvalidOperationException("File type not allowed.");
-
-            var folderPath = Path.Combine(env.WebRootPath, folderName);
-            Directory.CreateDirectory(folderPath);
-
-            // extension comes from the validated content type, never from the client's filename
-            var safeFileName = $"{Guid.NewGuid()}{ExtensionsByContentType[file.ContentType]}";
-            var filePath = Path.Combine(folderPath, safeFileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            return $"/{folderName}/{safeFileName}";
         }
     }
 }

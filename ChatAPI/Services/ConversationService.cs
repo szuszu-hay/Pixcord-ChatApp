@@ -13,11 +13,13 @@ namespace ChatAPI.Services
         private readonly AppDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly NotificationService _notificationService;
-        public ConversationService(AppDbContext context, UserManager<ApplicationUser> userManager, NotificationService notificationService)
+        private readonly IFileStorageService _fileStorage;
+        public ConversationService(AppDbContext context, UserManager<ApplicationUser> userManager, NotificationService notificationService, IFileStorageService fileStorage)
         {
             _context = context;
             _userManager = userManager;
             _notificationService = notificationService;
+            _fileStorage = fileStorage;
         }
 
         // system msg
@@ -438,7 +440,7 @@ namespace ChatAPI.Services
             };
         }
 
-        public async Task<ConversationDto?> UpdateGroupDetailsAsync (int conversationId, string userId, string? name, IFormFile? iconFile, IWebHostEnvironment env)
+        public async Task<ConversationDto?> UpdateGroupDetailsAsync (int conversationId, string userId, string? name, IFormFile? iconFile)
         {
             var conversation = await _context.Conversations 
                 .Include(c => c.Members)
@@ -456,7 +458,7 @@ namespace ChatAPI.Services
 
             if (iconFile != null)
             {
-                conversation.IconUrl = await FileStorage.SaveAsync(iconFile, "group-icons", FileStorage.ImageTypes, env);
+                conversation.IconUrl = await  _fileStorage.SaveAsync(iconFile, "group-icons", FileStorage.ImageTypes);
             }
             
             await _context.SaveChangesAsync();
@@ -680,7 +682,7 @@ namespace ChatAPI.Services
         }
 
         // Attachments
-        public async Task<MessageDto?> SendMessageWithAttachment(int conversationId, string userId, string? content, IFormFile file, IWebHostEnvironment env)
+        public async Task<MessageDto?> SendMessageWithAttachment(int conversationId, string userId, string? content, IFormFile file)
         {
             var isMember = await _context.ConversationMembers
                 .AnyAsync(m => m.ConversationId == conversationId && m.UserId == userId);
@@ -690,7 +692,7 @@ namespace ChatAPI.Services
             if (!await CanSendAsync(conversationId, userId))
                 throw new InvalidOperationException("You can only message people you're friends with.");
 
-            var fileUrl = await FileStorage.SaveAsync(file, "uploads", FileStorage.AttachmentTypes, env);
+            var fileUrl = await _fileStorage.SaveAsync(file, "uploads", FileStorage.AttachmentTypes);
 
             var message = new Message
             {

@@ -12,11 +12,12 @@ namespace ChatAPI.Services
     {
         private readonly AppDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-
-        public UserService(AppDbContext context, UserManager<ApplicationUser> userManager)
+        private readonly IFileStorageService _fileStorage;
+        public UserService(AppDbContext context, UserManager<ApplicationUser> userManager, IFileStorageService fileStorage)
         {
             _context = context;
             _userManager = userManager;
+            _fileStorage = fileStorage;
         }
 
         // Search user
@@ -96,12 +97,12 @@ namespace ChatAPI.Services
         }
 
         // Update avatar
-        public async Task<UserProfileDto?> UpdateAvatarAsync(string userId, IFormFile file, IWebHostEnvironment env)
+        public async Task<UserProfileDto?> UpdateAvatarAsync(string userId, IFormFile file)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return null;
 
-            user.ProfilePictureUrl = await FileStorage.SaveAsync(file, "avatars", FileStorage.ImageTypes, env);
+            user.ProfilePictureUrl = await _fileStorage.SaveAsync(file, "avatars", FileStorage.ImageTypes);
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)

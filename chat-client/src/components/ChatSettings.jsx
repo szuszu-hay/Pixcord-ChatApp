@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getConversationDetails, addMember, removeMember, leaveConversation, updateGroupDetails } from "../services/conversation.service";
 import { getFriends, unfriend } from "../services/friendRequest.service";
-import { SERVER_ORIGIN } from "../services/api";
+import { toUrl } from "../services/api";
 import Profile from "./Profile";
 import ConfirmationModal from "./ConfirmationModal";
 
@@ -206,7 +206,7 @@ function ChatSettings({ conversationId, conversationType, onClose, onMembersChan
                 <div className="settings-profile">
                     <div className="settings-avatar-wrapper">
                         {details.iconUrl ? (
-                            <img src={`${SERVER_ORIGIN}${details.iconUrl}`} alt="" className="settings-avatar" />
+                            <img src={toUrl(details.iconUrl)} alt="" className="settings-avatar" />
                         ) : (
                             <div className="settings-avatar avatar-fallback">
                                 {details.name?.[0]?.toUpperCase() || "?"}

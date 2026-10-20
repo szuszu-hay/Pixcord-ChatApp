@@ -8,6 +8,6 @@ namespace ChatAPI.Services.Interfaces
         Task<List<UserSearchResultDto>> SearchUsersAsync(string query, string currentUserId);
         Task<UserProfileDto?> GetUserProfileAsync(string userId);
         Task<UserProfileDto?> UpdateBioAsync(string userId, UpdateBioDto dto);
-        Task<UserProfileDto?> UpdateAvatarAsync(string userId, IFormFile file, IWebHostEnvironment env);
+        Task<UserProfileDto?> UpdateAvatarAsync(string userId, IFormFile file);
     }
 }

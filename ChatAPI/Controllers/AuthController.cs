@@ -1,5 +1,6 @@
 using ChatAPI.DTOs;
 using ChatAPI.Services;
+using ChatAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChatAPI.Controllers
@@ -8,8 +9,8 @@ namespace ChatAPI.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly AuthService _authService;
-        public AuthController(AuthService authService)
+        private readonly IAuthService _authService;
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
         }

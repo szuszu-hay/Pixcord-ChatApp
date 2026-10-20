@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SERVER_ORIGIN } from "../services/api";
+import { toUrl } from "../services/api";
 
 function Avatar({ url, name, className = "" }) {
     const [failedUrl, setFailedUrl] = useState(null);
@@ -9,7 +9,7 @@ function Avatar({ url, name, className = "" }) {
 
     if (url && url !== failedUrl) {
         return (
-            <img src={`${SERVER_ORIGIN}${url}`} alt=""
+            <img src={toUrl(url)} alt=""
                 className={`user-avatar ${className}`}
                 onError={() => setFailedUrl(url)}
             />

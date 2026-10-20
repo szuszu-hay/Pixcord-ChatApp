@@ -2,6 +2,7 @@ using System.Security.Claims;
 using ChatAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ChatAPI.Services.Interfaces;
 
 namespace ChatAPI.Controllers
 {
@@ -10,9 +11,9 @@ namespace ChatAPI.Controllers
     [Route("api/notifications")]
     public class NotificationController : ControllerBase
     {
-        private readonly NotificationService _notificationService;
+        private readonly INotificationService _notificationService;
 
-        public NotificationController(NotificationService notificationService)
+        public NotificationController(INotificationService notificationService)
         {
             _notificationService = notificationService;
         }

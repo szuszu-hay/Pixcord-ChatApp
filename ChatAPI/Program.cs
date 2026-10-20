@@ -26,14 +26,16 @@ builder.Services.AddSwaggerGen();
 
 //Db
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsql => npgsql.MigrationsAssembly("ChatAPI")));
+        
 //Cors
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://3wbzcqjv-5173.uks1.devtunnels.ms")
+        policy.WithOrigins("http://localhost:5173")
         .AllowAnyHeader()
         .AllowAnyMethod();
     });
@@ -80,7 +82,7 @@ builder.Services.AddAuthentication(options =>
         
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         NameClaimType = ClaimTypes.NameIdentifier
     };
 });
@@ -90,15 +92,17 @@ builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("Email"));
 
 //Register Services
-builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<UsernameService>();
+builder.Services.AddScoped<IUsernameService, UsernameService>();
 builder.Services.AddScoped<IFriendRequestService, FriendRequestService>();
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<ConversationService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IConversationService, ConversationService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddSingleton<IFileStorageService, CloudinaryStorageService>();
+builder.Services.AddScoped<UsernameService>();
 builder.Services.AddScoped<NotificationService>();
-
 var app = builder.Build();
 
 //Global Exception Handler
@@ -108,22 +112,30 @@ app.UseExceptionHandler(error =>
     {
         var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
         var statusCode = 500;
+        var isKnown = true;
 
         switch (exception)
         {
-            case InvalidCredentialsException : statusCode = 401; break;
-            case AccountLockedOutException : statusCode = 423; break;
-            case EmailNotConfirmedException : statusCode = 403; break;
-            case EmailAlreadyExistsException : statusCode = 409; break;
+            case InvalidCredentialsException: statusCode = 401; break;
+            case AccountLockedOutException: statusCode = 423; break;
+            case EmailNotConfirmedException: statusCode = 403; break;
+            case EmailAlreadyExistsException: statusCode = 409; break;
+            default: isKnown = false; break;
         }
-        
+
+        // unexpected errors go to the server log, not to the client
+        if (!isKnown)
+        {
+            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError(exception, "Unhandled exception on {Path}", context.Request.Path);
+        }
+
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
 
         await context.Response.WriteAsJsonAsync(new
         {
-            title = exception?.Message,
-            detail = exception?.InnerException?.Message ?? exception?.StackTrace,
+            title = isKnown ? exception!.Message : "Something went wrong.",
             status = statusCode
         });
     });
@@ -137,11 +149,11 @@ if (app.Environment.IsDevelopment())
 }
 
 //Seeding user
-using (var scope = app.Services.CreateScope())
-{
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    await UserSeeder.SeedUserAsync(userManager);
-}
+// using (var scope = app.Services.CreateScope())
+// {
+//     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+//     await UserSeeder.SeedUserAsync(userManager);
+// }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using ChatAPI.DTOs;
 using ChatAPI.Services;
+using ChatAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,9 +12,9 @@ namespace ChatAPI.Controllers
     [Route("api/conversations")]
     public class ConversationController : ControllerBase
     {
-        private readonly ConversationService _conversationService;
+        private readonly IConversationService _conversationService;
 
-        public ConversationController(ConversationService conversationService)
+        public ConversationController(IConversationService conversationService)
         {
             _conversationService = conversationService;
         }
@@ -98,12 +99,11 @@ namespace ChatAPI.Controllers
 
         [HttpPut("{conversationId}/group")]
         public async Task<IActionResult> UpdateGroupDetails(
-            int conversationId, [FromForm] string? name, [FromForm] IFormFile? iconFile,
-            [FromServices] IWebHostEnvironment env)
+            int conversationId, [FromForm] string? name, [FromForm] IFormFile? iconFile)
         {
             try
             {
-                var conversation = await _conversationService.UpdateGroupDetailsAsync(conversationId, UserId, name, iconFile, env);
+                var conversation = await _conversationService.UpdateGroupDetailsAsync(conversationId, UserId, name, iconFile);
                 if (conversation == null) return Forbid();
                 return Ok(conversation);
             }
@@ -179,12 +179,12 @@ namespace ChatAPI.Controllers
         }
 
         [HttpPost("{conversationId}/messages/upload")]
-        public async Task<IActionResult> SendMessagesWithAttachment(int conversationId, [FromForm] string? content, [FromForm] IFormFile file, [FromServices] IWebHostEnvironment env)
+        public async Task<IActionResult> SendMessagesWithAttachment(int conversationId, [FromForm] string? content, [FromForm] IFormFile file)
         {
 
             try
             {
-                var message = await _conversationService.SendMessageWithAttachment(conversationId, UserId, content, file, env);
+                var message = await _conversationService.SendMessageWithAttachment(conversationId, UserId, content, file);
                 if (message == null) return Forbid();
 
                 return Ok(message); 

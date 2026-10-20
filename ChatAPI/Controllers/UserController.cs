@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using ChatAPI.DTOs;
+using ChatAPI.Services.Interfaces;
 
 namespace ChatAPI.Controllers
 {
@@ -11,10 +12,10 @@ namespace ChatAPI.Controllers
     [Authorize]
     public class UserController : ControllerBase
     {
-        private readonly UserService _userService;
-        private readonly UsernameService _usernameService;
+        private readonly IUserService _userService;
+        private readonly IUsernameService _usernameService;
 
-        public UserController(UserService userService, UsernameService usernameService)
+        public UserController(IUserService userService, IUsernameService usernameService)
         {
             _userService = userService;
             _usernameService = usernameService;
@@ -89,7 +90,7 @@ namespace ChatAPI.Controllers
 
             try
             {
-                var profile = await _userService.UpdateAvatarAsync(userId, file, env);
+                var profile = await _userService.UpdateAvatarAsync(userId, file);
                 if (profile == null) return NotFound();
                 return Ok(profile);
             }

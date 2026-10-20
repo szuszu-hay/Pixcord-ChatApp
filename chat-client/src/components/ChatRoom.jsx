@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { deleteMessage, editMessage, getConversation, getMessages, sendMessage, toggleReaction, sendMessageWithAttachment } from "../services/conversation.service";
-import { SERVER_ORIGIN } from "../services/api";
+import { toUrl } from "../services/api";
 import ChatSettings from "./ChatSettings";
 import Profile from "./Profile";
 
@@ -317,9 +317,9 @@ function ChatRoom({ conversationId: propConversationId, onLeft }) {
                                     <div className="message-attachments">
                                         {m.attachments.map((a) => (
                                             a.contentType.startsWith("image/") ? (
-                                                <img key={a.id} src={ `${SERVER_ORIGIN}${a.fileUrl}`} alt={a.fileName} className="attachment-image" />
+                                                <img key={a.id} src={toUrl(a.fileUrl)} alt={a.fileName} className="attachment-image" />
                                             ) : (
-                                                <a key={a.id} href={ `${SERVER_ORIGIN}${a.fileUrl}`} target="_blank" rel="noopener noreferrer" className="attachment-file">
+                                                <a key={a.id} href={toUrl(a.fileUrl)} target="_blank" rel="noopener noreferrer" className="attachment-file">
                                                     📄 {a.fileName}
                                                 </a>
                                             )
