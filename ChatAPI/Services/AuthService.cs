@@ -16,7 +16,7 @@ namespace ChatAPI.Services
         private readonly UsernameService _usernameService;
         private readonly IEmailService _emailService;     
         private readonly IConfiguration _configuration;                         
-
+        
         public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, 
                             TokenService tokenService, UsernameService usernameService, IEmailService emailService, 
                             IConfiguration configuration)
@@ -93,8 +93,10 @@ namespace ChatAPI.Services
 
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedToken = WebUtility.UrlEncode(token);
-            var confirmationUrl = $"http://localhost:5156/api/auth/confirm-email?userId={user.Id}&token={encodedToken}";
-
+            
+            var apiBase = (_configuration["Api:BaseUrl"] ?? "http://localhost:5156").TrimEnd('/');
+            var confirmationUrl = $"{apiBase}/api/auth/confirm-email?userId={user.Id}&token={encodedToken}";
+            
             await _emailService.SendEmailConfirmationAsync(
                 user.Email,
                 user.DisplayName,

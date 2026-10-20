@@ -10,9 +10,11 @@ namespace ChatAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        public AuthController(IAuthService authService)
+        private readonly IConfiguration _config;
+        public AuthController(IAuthService authService, IConfiguration config)
         {
             _authService = authService;
+            _config = config;
         }
 
         [HttpPost("login")]
@@ -33,17 +35,14 @@ namespace ChatAPI.Controllers
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
+            var frontend = (_config["Frontend:BaseUrl"] ?? "http://localhost:5173").TrimEnd('/');
             var confirmed = await _authService.ConfirmEmailAsync(userId, token);
             if (!confirmed)
             {
-                return Redirect(
-                    "http://localhost:5173/email-confirmation-failed"
-                );
+                return Redirect($"{frontend}/email-confirmation-failed");
             }
 
-             return Redirect(
-                "http://localhost:5173/email-confirmed"
-            );
+             return Redirect($"{frontend}/email-confirmed");
         }
 
         [HttpPost("google")]
